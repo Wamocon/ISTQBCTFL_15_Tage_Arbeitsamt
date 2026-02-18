@@ -1,0 +1,164 @@
+# Technische Dokumentation: WAMOCON Landingpage Template
+
+DIESE DOKUMENTATION DIENT ALS TECHNISCHE BLAUPAUSE FÜR ZUKÜNFTIGE LANDINGPAGE-PROJEKTE DER WAMOCON ACADEMY.
+
+## 1. Projektübersicht & Tech Stack
+
+Diese Landingpage basiert auf einer modernen, server-side gerenderten Architektur mittels Next.js 15 und nutzt Supabase als Backend-as-a-Service für Datenbank und Authentifizierung (falls benötigt). Das Styling erfolgt über Tailwind CSS mit einem strikten Design-System, um Brand-Konsistenz zu gewährleisten.
+
+### Core Technologies
+*   **Framework**: Next.js 15.1.6 (App Router)
+*   **Language**: TypeScript 5.x
+*   **UI Library**: React 19.x
+*   **Styling**: Tailwind CSS 3.4
+*   **Animations**: Framer Motion 11.15
+*   **Icons**: Lucide React
+*   **Backend / Database**: Supabase (PostgreSQL)
+*   **Email Service**: Resend API
+*   **Deployment**: Vercel (empfohlen)
+
+## 2. Projektstruktur
+
+Die Struktur folgt dem Next.js App Router Pattern.
+
+```
+/
+├── app/                        # App Router Pages & Layouts
+│   ├── api/                    # Server-side API Routes (z.B. Email Sending)
+│   ├── layout.tsx              # Root Layout (Fonts, Global Providers, Header/Footer)
+│   ├── page.tsx                # Homepage (Component Composition)
+│   ├── globals.css             # Globale Styles & Tailwind Directives
+│   └── ... (Weitere Unterseiten wie /impressum, /selbsttest)
+├── components/                 # React Komponenten
+│   ├── analytics/              # Tracking & Analytics (Google, Meta)
+│   ├── providers/              # Context Providers (z.B. CookieConsent)
+│   ├── sections/               # Page Sections (Hero, Features, Pricing...)
+│   ├── seo/                    # SEO Komponenten (JSON-LD)
+│   ├── shared/                 # Globale UI Teile (Header, Footer, CookieBanner)
+│   └── ui/                     # Wiederverwendbare Basis-Komponenten (Button, ScrollReveal, Inputs)
+├── lib/                        # Utility Funktionen & Logic
+│   ├── api.ts                  # Supabase API Wrapper (CRUD Operations)
+│   ├── supabase.ts             # Supabase Client Initialisierung
+│   ├── email-templates.ts      # HTML Email Templates & Helper
+│   └── utils.ts                # Helper (cn function für Tailwind Merge)
+├── public/                     # Statische Assets (Bilder, Icons)
+├── types/                      # TypeScript Definitionen
+│   └── database.ts             # Generierte Supabase Typen
+└── ... Config-Files (tailwind.config.ts, next.config.ts)
+```
+
+## 3. Design System & Styling (Tailwind CSS)
+
+Die gesamte Konfiguration befindet sich in `tailwind.config.ts`. Hier sind die WAMOCON Brand Colors und Fonts definiert.
+
+### Farben (`tailwind.config.ts`)
+*   **Primary/Background**: `#151515` (Dunkles Theme)
+*   **Accent (WAMOCON Red)**: `#FF0B00` (Main), `#CC0900` (Hover), `#ff3d33` (Light)
+*   **Cards**: `#292929` oder `#303030`
+*   **Text**: `#FFFFFF` (Foreground), `#d4d4d4` (Muted)
+
+### Fonts
+Verwendet wird **Poppins** über `next/font/google`.
+Variable: `--font-poppins`
+
+### Animationen
+Definiert in `tailwind.config.ts` und implementiert über `components/ui/ScrollReveal.tsx` (Wrapper um Framer Motion).
+*   `fade-in`, `fade-up`, `scale-up`, `slide-left/right`
+
+## 4. Backend Architektur (Supabase)
+
+### Verbindung
+Die Initialisierung erfolgt in `lib/supabase.ts` mittels ENVIRONMENT VARIABLES:
+*   `NEXT_PUBLIC_SUPABASE_URL`
+*   `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+### Datenmodell (Wichtige Tabellen)
+Die Typen werden in `types/database.ts` vorgehalten.
+
+1.  **leads**: Speichert Newsletter/Lead-Magnet Anmeldungen.
+    *   `email` (Unique), `source`, `consent_given`, `phone`
+2.  **orders**: Speichert Bestellungen (noch nicht bezahlt & abgeschlossen).
+    *   `order_number`, `email`, `product_name`, `status`, `payment_details`
+3.  **products**: Verwaltet Produkte/Kurse.
+    *   `name`, `price`, `active`, `features` (JSON)
+4.  **testimonials**: Verwaltet Kundenstimmen (Video & Text).
+    *   `name`, `quote`, `video_url`, `is_featured`
+5.  **faq_items**: Verwaltet FAQ Einträge.
+    *   `question`, `answer`, `display_order`
+
+### API Layer (`lib/api.ts`)
+Es wird **dringend empfohlen**, keine direkten Supabase Calls in den UI-Komponenten zu machen, sondern die Funktionen aus `lib/api.ts` zu nutzen.
+Beispiele:
+*   `createLead(data)`
+*   `createOrder(data)`
+*   `getTestimonials()`
+
+## 5. UI Implementierung & Patterns
+
+### Section Composition (`app/page.tsx`)
+Die Landingpage besteht aus modularen Sektionen, die in `app/page.tsx` untereinander geladen werden. Jede Sektion ist eine eigenständige Komponente in `components/sections/`.
+
+```tsx
+export default function Home() {
+  return (
+    <main>
+       <Hero />
+       <Definition />
+       <Comparison />
+       <Pricing />
+       ...
+    </main>
+  )
+}
+```
+
+### Reusable UI Components
+Nutze immer die Komponenten aus `components/ui/`, anstatt HTML Elemente direkt zu stylen.
+*   **Button**: `<Button variant="primary" size="lg">Text</Button>`
+*   **ScrollReveal**: `<ScrollReveal animation="fade-up">...</ScrollReveal>` für Entry-Animationen.
+
+## 6. Workflows & Business Logic
+
+### Bestellprozess
+1.  User füllt Formular im `PurchaseDialog` (oder Pricing Section) aus.
+2.  Daten werden validiert (Zod oder manuelle Checks).
+3.  Aufruf `api.createOrder()` -> Speichert in Supabase `orders` Tabelle.
+4.  Aufruf API Route `/api/send-order-emails` mit den Order-Daten.
+5.  Backend sendet E-Mails via **Resend** (Kunde & Admin).
+
+### E-Mail Versand (`app/api/send-order-emails/route.ts`)
+Nutzt die Resend Library.
+*   Templates sollten in `lib/email-templates.ts` definiert sein (String-Replacement Strategie für einfache Wartbarkeit ohne schwere Template-Engine).
+*   Benötigt `RESEND_API_KEY` in .env.
+
+## 7. Einrichtung für neues Projekt (Checkliste)
+
+1.  **Repo klonen** und `.git` Verzeichnis löschen (für frischen Start).
+2.  **Dependencies installieren**: `npm install`.
+3.  **Environment Variables setzen** (`.env.local` erstellen):
+    *   Supabase URL & Key
+    *   Resend API Key
+    *   Domain URL
+4.  **Datenbank aufsetzen**:
+    *   In Supabase neues Projekt erstellen.
+    *   Schema (Tabellen) analog zu `types/database.ts` anlegen (SQL Skripte nutzen falls vorhanden, sonst manuell).
+5.  **Branding anpassen**:
+    *   `tailwind.config.ts`: Colors anpassen falls nötig (aber WAMOCON Rot `#FF0B00` sollte bleiben).
+    *   `app/globals.css`: Ggf. globale Stile tunen.
+    *   `public/`: Logos und Favicon austauschen.
+6.  **Content austauschen**:
+    *   Texte in `components/sections/` anpassen.
+    *   Bilder in `public/` ersetzen.
+7.  **Deployen**:
+    *   Auf Vercel verbinden.
+    *   Environment Variables in Vercel eintragen.
+
+## 8. Best Practices für Weiterentwicklung
+
+*   **Mobile First**: Alle Komponenten müssen responsive sein (`md:`, `lg:` prefix nutzen).
+*   **Server Components**: `page.tsx` und Sections standardmäßig Server Components lassen. Nur Interaktive Teile (Buttons, Forms, Dialoge) mit `'use client'` markieren.
+*   **Type Safety**: Immer die Typen aus `types/database.ts` oder Interfaces nutzen. Kein `any`!
+*   **Performance**: Bilder immer mit `next/image` laden. Große Libraries vermeiden.
+
+---
+*Erstellt am 14.02.2026 für WAMOCON Academy*
