@@ -14,11 +14,12 @@ const certifications = [
     },
     {
         icon: Award,
-        name: "ISTQB® Platinum Partner",
+        name: "ISTQB® Akkreditierter Trainings-Anbieter",
         issuer: "International Software Testing Qualifications Board",
-        desc: "Über 1 Million Zertifizierungen weltweit. Der globale Goldstandard im Software Testing, anerkannt in 130+ Ländern.",
-        badge: "Weltweit anerkannt",
+        desc: "Offiziell akkreditierter Trainingsanbieter. Wir erfüllen die strengen Qualitätsstandards des ISTQB®.",
+        badge: "Offiziell Akkreditiert",
         badgeColor: "bg-blue-100 text-blue-800",
+        image: "/WMA_Akkreditierung_ISTQB.png",
     },
     {
         icon: Building2,
@@ -27,30 +28,6 @@ const certifications = [
         desc: "Als Kompetenzzentrum für IT-Qualitätssicherung gelistet. Staatlich geprüft und zugelassen.",
         badge: "Staatlich geprüft",
         badgeColor: "bg-purple-100 text-purple-800",
-    },
-    {
-        icon: BadgeCheck,
-        name: "Akkreditierte Trainer",
-        issuer: "ISTQB® Trainingsprovider",
-        desc: "Unsere Trainer sind offiziell akkreditiert und dürfen die Prüfungsvorbereitung nach ISTQB®-Standards durchführen.",
-        badge: "Akkreditiert",
-        badgeColor: "bg-orange-100 text-orange-800",
-    },
-    {
-        icon: FileCheck,
-        name: "DIN ISO 9001:2015",
-        issuer: "Qualitätsmanagement",
-        desc: "Zertifiziertes Qualitätsmanagementsystem nach internationalem Standard. Deine Garantie für konstante Qualität.",
-        badge: "Qualitätsstandard",
-        badgeColor: "bg-teal-100 text-teal-800",
-    },
-    {
-        icon: Globe,
-        name: "iSQI Prüfungspartner",
-        issuer: "International Software Quality Institute",
-        desc: "Offizielle Prüfungen direkt bei uns. Keine externe Buchung nötig – alles aus einer Hand.",
-        badge: "Prüfungszentrum",
-        badgeColor: "bg-red-100 text-red-800",
     },
 ];
 
@@ -84,10 +61,10 @@ export default function Certificates() {
                             whileInView={{ opacity: 1, y: 0, scale: 1 }}
                             viewport={{ once: true, margin: "-40px" }}
                             transition={{ delay: i * 0.1, duration: 0.45, ease: "easeOut" }}
-                            className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 group card-shine hover:-translate-y-1"
+                            className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 group card-shine hover:-translate-y-1 h-full flex flex-col"
                         >
                             <div className="flex items-start justify-between mb-4">
-                                <div className="w-12 h-12 bg-[#fe0404]/20 rounded-xl flex items-center justify-center group-hover:bg-[#fe0404]/30 transition-colors">
+                                <div className="w-12 h-12 bg-[#fe0404]/20 rounded-xl flex items-center justify-center group-hover:bg-[#fe0404]/30 transition-colors shrink-0">
                                     <cert.icon className="w-6 h-6 text-[#fe0404]" />
                                 </div>
                                 <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${cert.badgeColor}`}>
@@ -96,30 +73,21 @@ export default function Certificates() {
                             </div>
                             <h3 className="text-white font-bold text-base mb-1">{cert.name}</h3>
                             <p className="text-xs text-gray-500 mb-3">{cert.issuer}</p>
-                            <p className="text-sm text-gray-400 leading-relaxed">{cert.desc}</p>
+                            <p className="text-sm text-gray-400 leading-relaxed mb-4 flex-grow">{cert.desc}</p>
+
+                            {/* @ts-ignore - image property is optional */}
+                            {cert.image && (
+                                <div className="mt-auto pt-4 border-t border-white/10 w-full">
+                                    <img
+                                        src={cert.image}
+                                        alt={cert.name}
+                                        className="w-full h-auto rounded border border-white/10"
+                                    />
+                                </div>
+                            )}
                         </motion.div>
                     ))}
                 </div>
-
-                {/* Official Accreditation Document */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="mt-16 flex flex-col items-center"
-                >
-                    <div className="bg-white p-3 rounded-xl shadow-2xl max-w-lg w-full transform transition-all hover:scale-[1.02] duration-300">
-                        <img
-                            src="/WMA_Akkreditierung_ISTQB.png"
-                            alt="Offizielle ISTQB Akkreditierung"
-                            className="w-full h-auto rounded border border-gray-100"
-                        />
-                        <div className="mt-3 flex items-center justify-center gap-2 text-[#101010]">
-                            <BadgeCheck className="w-4 h-4 text-[#fe0404]" />
-                            <span className="text-xs font-bold uppercase tracking-wider">Offizielle Akkreditierung</span>
-                        </div>
-                    </div>
-                </motion.div>
 
                 {/* Trust summary bar */}
                 <motion.div

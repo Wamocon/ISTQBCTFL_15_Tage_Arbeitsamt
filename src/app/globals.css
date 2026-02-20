@@ -7,7 +7,7 @@
   --primary-hover: #d00303;
   --secondary: #101010;
   --secondary-hover: #303030;
-  --accent: #f6f6f6;
+  --accent: #ffffff;
   --success: #28a745;
   --muted: #6b7280;
   --border: #e5e7eb;
@@ -101,6 +101,9 @@ body {
 /* ═══════════════════════════════════════════════════════ */
 .section-padding {
   padding: 5rem 1.5rem;
+  position: relative;
+  /* Ensure sections have a positioning context */
+  z-index: 0;
 }
 
 @media (min-width: 768px) {
@@ -129,13 +132,22 @@ body {
 /* ═══════════════════════════════════════════════════════ */
 .wave-divider {
   position: relative;
-  margin-top: -1px;
+  z-index: 10;
+  margin-top: -5px;
+  /* Aggressive overlap to hide gaps */
+  margin-bottom: -5px;
+  overflow: hidden;
+  line-height: 0;
+  font-size: 0;
+  pointer-events: none;
+  /* Prevent blocking interaction */
 }
 
 .wave-divider svg {
   display: block;
   width: 100%;
   height: auto;
+  position: relative;
 }
 
 /* ═══════════════════════════════════════════════════════ */
@@ -391,4 +403,70 @@ body {
 
 .gradient-border:hover::before {
   opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/*  Legal Page Content Typography                          */
+/* ═══════════════════════════════════════════════════════ */
+.legal-content h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #101010;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.legal-content h2:first-child {
+  margin-top: 0;
+}
+
+.legal-content h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #101010;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.legal-content p {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+}
+
+.legal-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.legal-content li {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #4b5563;
+  margin-bottom: 0.25rem;
+}
+
+.legal-content a {
+  color: #fe0404;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.legal-content a:hover {
+  text-decoration: underline;
+  color: #d00303;
+}
+
+.legal-content strong {
+  color: #101010;
+  font-weight: 600;
+}
+
+.legal-content em {
+  color: #6b7280;
+  font-style: italic;
 }

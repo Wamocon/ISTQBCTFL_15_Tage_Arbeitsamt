@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Award, Briefcase, GraduationCap, Globe, Code2, Users } from "lucide-react";
+
 
 const trainers = [
     {
@@ -12,11 +12,7 @@ const trainers = [
         bio: "Als Gründer der WAMOCON Academy und passionierter Software-Ingenieur habe ich es mir zur Aufgabe gemacht, komplexe IT-Themen verständlich und praxisnah zu vermitteln.",
         highlight: "Mit meiner Erfahrung aus über 50 internationalen IT-Projekten weiß ich genau, worauf es in der Praxis ankommt. Theorie ist die Basis, aber erst die Anwendung macht einen exzellenten Softwaretester aus.",
         mission: "Mein Ziel: Dich nicht nur sicher durch die Prüfung zu bringen, sondern dich zu einem selbstbewussten QA-Experten zu machen, der vom ersten Tag an echten Mehrwert liefert.",
-        stats: [
-            { icon: Globe, value: "50+", label: "Internationale Projekte" },
-            { icon: Briefcase, value: "25+", label: "Jahre Erfahrung" },
-            { icon: GraduationCap, value: "ISTQB®", label: "Akkreditierter Trainer" },
-        ],
+
     },
     {
         name: "Daniel Moretz",
@@ -26,11 +22,7 @@ const trainers = [
         bio: "ISTQB®-Testmanager und Testautomatisierer mit Fokus auf Praxisnähe und der konkreten Anwendung risikobasierter Teststrategien.",
         highlight: "Als fachlicher Verantwortlicher und Koordinator für DiTeLe hat er großen Wert auf einfache und praxisorientierte Übungen gelegt. Er sorgt dafür, dass du komplexe Zusammenhänge spielerisch verstehst und sofort anwenden kannst.",
         mission: "Mit seiner Erfahrung aus über 10 Jahren Projektarbeit und Zertifizierungen auf ISTQB Advanced Level bringt er tiefes technisches Know-how direkt in deinen Kurs.",
-        stats: [
-            { icon: Code2, value: "10+", label: "Jahre Projektarbeit" },
-            { icon: Award, value: "Advanced", label: "ISTQB Level" },
-            { icon: Users, value: "DiTeLe", label: "Fachlicher Leiter" },
-        ],
+
     },
 ];
 
@@ -99,19 +91,7 @@ export default function Trainers() {
                                     {trainer.mission}
                                 </p>
 
-                                {/* Stats */}
-                                <div className="grid grid-cols-3 gap-3">
-                                    {trainer.stats.map((stat) => (
-                                        <div
-                                            key={stat.label}
-                                            className="bg-[#f6f6f6] rounded-xl p-3 text-center group-hover:bg-gray-100 transition-colors"
-                                        >
-                                            <stat.icon className="w-5 h-5 text-[#fe0404] mx-auto mb-1.5" />
-                                            <p className="text-sm font-bold text-[#101010]">{stat.value}</p>
-                                            <p className="text-[10px] text-gray-400">{stat.label}</p>
-                                        </div>
-                                    ))}
-                                </div>
+
                             </div>
                         </motion.div>
                     ))}

@@ -96,7 +96,7 @@ export default function ToolShowcase() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                     >
-                        <div className="relative">
+                        <div>
                             <div className="bg-[#1a1a1a] rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
                                 {/* Window bar */}
                                 <div className="flex items-center gap-2 px-4 py-3 bg-[#0d0d0d] border-b border-white/10">
@@ -192,20 +192,22 @@ export default function ToolShowcase() {
                                 </div>
                             </div>
 
-                            {/* Floating badge */}
+                            {/* Badge – below the mock dashboard */}
                             <motion.div
-                                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                                whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
-                                className="absolute -bottom-5 -right-5 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 animate-float animate-pulse-glow"
+                                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                viewport={{ once: true, margin: "-30px" }}
+                                transition={{ delay: 0.3, duration: 0.5, type: "spring", stiffness: 120 }}
+                                className="flex items-center justify-center gap-3 mt-5"
                             >
-                                <div className="w-10 h-10 bg-[#fe0404]/10 rounded-full flex items-center justify-center">
-                                    <Beaker className="w-5 h-5 text-[#fe0404]" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500">Praxisanteil</p>
-                                    <p className="font-bold text-[#101010]">&gt; 60%</p>
+                                <div className="bg-[#1a1a1a] border border-white/10 rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 animate-pulse-glow">
+                                    <div className="w-10 h-10 bg-[#fe0404]/10 rounded-full flex items-center justify-center">
+                                        <Beaker className="w-5 h-5 text-[#fe0404]" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400">Praxisanteil</p>
+                                        <p className="font-bold text-white">&gt; 60%</p>
+                                    </div>
                                 </div>
                             </motion.div>
                         </div>

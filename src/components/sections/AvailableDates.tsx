@@ -1,46 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CalendarDays, MapPin, Clock, Users, CheckCircle, ArrowRight, AlertCircle } from "lucide-react";
-
-const upcomingDates = [
-    {
-        startDate: "10. März 2026",
-        endDate: "28. März 2026",
-        location: "Frankfurt am Main (Präsenz)",
-        format: "Vollzeit – 15 Werktage",
-        spotsLeft: 4,
-        totalSpots: 12,
-        status: "fast-voll" as const,
-    },
-    {
-        startDate: "07. April 2026",
-        endDate: "25. April 2026",
-        location: "Frankfurt am Main (Präsenz)",
-        format: "Vollzeit – 15 Werktage",
-        spotsLeft: 9,
-        totalSpots: 12,
-        status: "verfügbar" as const,
-    },
-    {
-        startDate: "05. Mai 2026",
-        endDate: "23. Mai 2026",
-        location: "Frankfurt am Main (Präsenz)",
-        format: "Vollzeit – 15 Werktage",
-        spotsLeft: 12,
-        totalSpots: 12,
-        status: "verfügbar" as const,
-    },
-    {
-        startDate: "02. Juni 2026",
-        endDate: "20. Juni 2026",
-        location: "Frankfurt am Main (Präsenz)",
-        format: "Vollzeit – 15 Werktage",
-        spotsLeft: 12,
-        totalSpots: 12,
-        status: "verfügbar" as const,
-    },
-];
+import { CalendarDays, MapPin, Clock, Users, CheckCircle, ArrowRight, AlertCircle, XCircle } from "lucide-react";
+import { upcomingDates } from "@/data/courseDates";
+import Link from "next/link"; // For client-side routing if preferred, but <a> + href is fine for anchors
 
 function StatusBadge({ status, spotsLeft }: { status: string; spotsLeft: number }) {
     if (status === "fast-voll") {
@@ -48,6 +11,14 @@ function StatusBadge({ status, spotsLeft }: { status: string; spotsLeft: number 
             <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">
                 <AlertCircle className="w-3.5 h-3.5" />
                 Nur noch {spotsLeft} Plätze!
+            </span>
+        );
+    }
+    if (status === "ausgebucht") {
+        return (
+            <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full">
+                <XCircle className="w-3.5 h-3.5" />
+                Ausgebucht (Warteliste)
             </span>
         );
     }
@@ -84,7 +55,7 @@ export default function AvailableDates() {
                 <div className="space-y-4">
                     {upcomingDates.map((date, i) => (
                         <motion.div
-                            key={date.startDate}
+                            key={date.id}
                             initial={{ opacity: 0, y: 30, scale: 0.97 }}
                             whileInView={{ opacity: 1, y: 0, scale: 1 }}
                             viewport={{ once: true, margin: "-40px" }}
@@ -122,13 +93,23 @@ export default function AvailableDates() {
                                 {/* Status + CTA */}
                                 <div className="flex items-center gap-3 lg:shrink-0">
                                     <StatusBadge status={date.status} spotsLeft={date.spotsLeft} />
-                                    <a
-                                        href="#contact"
-                                        className="inline-flex items-center gap-2 bg-[#fe0404] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#d00303] transition-all glow-red group whitespace-nowrap"
-                                    >
-                                        Platz sichern
-                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                                    </a>
+                                    {date.status !== 'ausgebucht' ? (
+                                        <Link
+                                            href={`/?date=${date.id}#contact`}
+                                            className="inline-flex items-center gap-2 bg-[#fe0404] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#d00303] transition-all glow-red group whitespace-nowrap"
+                                            scroll={false}
+                                            onClick={() => {
+                                                document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                                            }}
+                                        >
+                                            Platz sichern
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                                        </Link>
+                                    ) : (
+                                        <button disabled className="inline-flex items-center gap-2 bg-gray-100 text-gray-400 px-5 py-2.5 rounded-lg text-sm font-bold cursor-not-allowed whitespace-nowrap">
+                                            Ausgebucht
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 

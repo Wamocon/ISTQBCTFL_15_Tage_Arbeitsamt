@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Search,
@@ -13,6 +13,7 @@ import {
     ShoppingCart,
     Star,
     AlertTriangle,
+    XCircle,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -45,14 +46,45 @@ const BUGS: BugDef[] = [
     },
 ];
 
+/* ------------------------------------------------------------------ */
+/*  False-positive definitions - correct elements that look suspicious */
+/* ------------------------------------------------------------------ */
+interface FalsePositive {
+    id: string;
+    label: string;
+    reason: string;
+}
+
+const FALSE_POSITIVES: FalsePositive[] = [
+    {
+        id: "product-image",
+        label: "Produktbild",
+        reason: "Das Produktbild ist ein Platzhalter – das ist im Prototyp-Stadium normal und kein funktionaler Fehler.",
+    },
+    {
+        id: "star-rating",
+        label: "Sternebewertung",
+        reason: "4 von 5 Sternen ist eine valide Bewertung. Nicht jedes Produkt hat 5 Sterne – das ist korrekt.",
+    },
+    {
+        id: "product-title",
+        label: "Produkttitel",
+        reason: "Der Produktname ist korrekt dargestellt. Schriftart, Größe und Formatierung entsprechen den Anforderungen.",
+    },
+];
+
 export default function Hero() {
     const [foundBugs, setFoundBugs] = useState<Set<string>>(new Set());
+    const [gameStarted, setGameStarted] = useState(false);
     const [lastFound, setLastFound] = useState<BugDef | null>(null);
+    const [falsePositiveMsg, setFalsePositiveMsg] = useState<FalsePositive | null>(null);
+    const fpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const allFound = foundBugs.size === BUGS.length;
 
     const markBug = useCallback(
         (bug: BugDef) => {
             if (foundBugs.has(bug.id)) return;
+            setFalsePositiveMsg(null); // clear any false-positive message
             setFoundBugs((prev) => {
                 const next = new Set(prev);
                 next.add(bug.id);
@@ -63,12 +95,17 @@ export default function Hero() {
         [foundBugs]
     );
 
+    const triggerFalsePositive = useCallback((fp: FalsePositive) => {
+        setLastFound(null); // clear any bug message
+        setFalsePositiveMsg(fp);
+        if (fpTimerRef.current) clearTimeout(fpTimerRef.current);
+        fpTimerRef.current = setTimeout(() => setFalsePositiveMsg(null), 4000);
+    }, []);
+
     return (
         <section id="hero" className="relative overflow-hidden">
             {/* Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-red-50/30" />
-            <div className="absolute top-20 right-0 w-96 h-96 bg-[#fe0404]/5 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#101010]/5 rounded-full blur-3xl" />
+            <div className="absolute inset-0 bg-white" />
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
                 <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -148,7 +185,7 @@ export default function Hero() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.7, delay: 0.2 }}
                     >
-                        <div className="relative">
+                        <div>
                             {/* Mock Browser Window */}
                             <div className="bg-[#101010] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
                                 {/* Browser Chrome */}
@@ -161,220 +198,318 @@ export default function Hero() {
                                     </span>
                                 </div>
 
-                                {/* Challenge Header */}
-                                <div className="px-6 pt-5 pb-3 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Search className="w-5 h-5 text-[#fe0404]" />
-                                        <h3 className="text-white font-bold text-base">
-                                            {allFound
-                                                ? "🎉 Alle Fehler gefunden!"
-                                                : "Finde die 3 UI-Fehler!"}
-                                        </h3>
-                                    </div>
-                                    <span className="text-sm font-mono text-[#fe0404]">
-                                        {foundBugs.size}/3
-                                    </span>
-                                </div>
 
+                                {/* Challenge Content */}
                                 <AnimatePresence mode="wait">
-                                    {!allFound ? (
+                                    {!gameStarted ? (
                                         <motion.div
-                                            key="shop"
-                                            initial={{ opacity: 1 }}
-                                            exit={{ opacity: 0, scale: 0.95 }}
-                                            className="px-6 pb-6"
+                                            key="start-screen"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            className="p-8 pb-12 text-center flex flex-col items-center justify-center min-h-[450px]"
                                         >
-                                            {/* Simulated Product Page */}
-                                            <div className="bg-white rounded-xl overflow-hidden">
-                                                {/* Product Image Placeholder */}
-                                                <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-32 flex items-center justify-center relative">
-                                                    <div className="text-center text-gray-400">
-                                                        <ShoppingCart className="w-8 h-8 mx-auto mb-1" />
-                                                        <span className="text-xs">Produktbild</span>
-                                                    </div>
-                                                    {/* Cart Badge with WRONG price - Bug #2 */}
-                                                    <button
-                                                        onClick={() => markBug(BUGS[1])}
-                                                        className={`absolute top-3 right-3 flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-all cursor-pointer ${foundBugs.has("price-mismatch")
-                                                            ? "bg-green-100 text-green-700 ring-2 ring-green-400"
-                                                            : "bg-gray-800 text-white hover:ring-2 hover:ring-[#fe0404]/50"
-                                                            }`}
-                                                        title="Warenkorb"
-                                                    >
-                                                        <ShoppingCart className="w-3 h-3" />
-                                                        &euro;39,99
-                                                        {foundBugs.has("price-mismatch") && (
-                                                            <CheckCircle className="w-3 h-3 ml-0.5" />
-                                                        )}
-                                                    </button>
+                                            <div className="w-20 h-20 bg-[#fe0404]/10 rounded-full flex items-center justify-center mb-6 relative group">
+                                                <div className="absolute inset-0 bg-[#fe0404]/20 rounded-full animate-ping opacity-20"></div>
+                                                <Search className="w-10 h-10 text-[#fe0404]" />
+                                            </div>
+                                            <h3 className="text-2xl sm:text-3xl font-black text-white mb-4">
+                                                Eignungstest für<br />Softwaretester
+                                            </h3>
+                                            <p className="text-gray-400 mb-8 max-w-xs leading-relaxed mx-auto">
+                                                Hast du den Blick fürs Detail?
+                                                <br />
+                                                <span className="text-gray-500 text-sm mt-2 block">
+                                                    Finde 3 versteckte Fehler in dieser App.
+                                                </span>
+                                            </p>
+                                            <button
+                                                onClick={() => setGameStarted(true)}
+                                                className="bg-[#fe0404] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#d00303] transition-all glow-red transform hover:scale-105 active:scale-95 shadow-lg shadow-red-900/20"
+                                            >
+                                                TEST STARTEN
+                                            </button>
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            key="game-interface"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="h-full"
+                                        >
+                                            {/* Challenge Header */}
+                                            <div className="px-6 pt-5 pb-3 flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Search className="w-5 h-5 text-[#fe0404]" />
+                                                    <h3 className="text-white font-bold text-base">
+                                                        {allFound
+                                                            ? "🎉 Alle Fehler gefunden!"
+                                                            : "Finde die 3 UI-Fehler!"}
+                                                    </h3>
                                                 </div>
-
-                                                {/* Product Info */}
-                                                <div className="p-4 space-y-3">
-                                                    <div className="flex items-center justify-between">
-                                                        <h4 className="font-bold text-[#101010] text-sm">
-                                                            Premium Kopfhörer Pro X
-                                                        </h4>
-                                                        <div className="flex items-center gap-0.5">
-                                                            {[...Array(5)].map((_, i) => (
-                                                                <Star
-                                                                    key={i}
-                                                                    className={`w-3 h-3 ${i < 4
-                                                                        ? "text-yellow-400 fill-yellow-400"
-                                                                        : "text-gray-300"
-                                                                        }`}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Price - shows 29,99 but cart shows 39,99 */}
-                                                    <p className="text-[#fe0404] font-bold text-lg">
-                                                        &euro;29,99
-                                                    </p>
-
-                                                    {/* Email field - Bug #3: missing asterisk */}
-                                                    <div>
-                                                        <button
-                                                            onClick={() => markBug(BUGS[2])}
-                                                            className={`block w-full text-left cursor-pointer transition-all rounded-lg p-0.5 ${foundBugs.has("missing-asterisk")
-                                                                ? "ring-2 ring-green-400"
-                                                                : "hover:ring-2 hover:ring-[#fe0404]/50"
-                                                                }`}
-                                                        >
-                                                            <span className="text-xs text-gray-500 mb-0.5 block pl-1">
-                                                                E-Mail für Bestellbestätigung
-                                                                {/* Intentionally NO asterisk - that is the bug */}
-                                                                {foundBugs.has("missing-asterisk") && (
-                                                                    <span className="text-green-600 ml-1">
-                                                                        ✓ Pflichtfeld-Marker fehlt!
-                                                                    </span>
-                                                                )}
-                                                            </span>
-                                                            <div className="w-full h-9 bg-gray-50 rounded-md border border-gray-200 px-2.5 flex items-center text-xs text-gray-400">
-                                                                ihre@email.de
-                                                            </div>
-                                                        </button>
-                                                    </div>
-
-                                                    {/* Buy Button - Bug #1: greyed out */}
-                                                    <button
-                                                        onClick={() => markBug(BUGS[0])}
-                                                        className={`w-full py-2.5 rounded-lg font-bold text-sm transition-all cursor-pointer ${foundBugs.has("button-color")
-                                                            ? "bg-green-500 text-white ring-2 ring-green-400"
-                                                            : "bg-gray-400 text-gray-200 hover:ring-2 hover:ring-[#fe0404]/50"
-                                                            }`}
-                                                    >
-                                                        {foundBugs.has("button-color")
-                                                            ? "✓ Bug erkannt!"
-                                                            : "Jetzt kaufen"}
-                                                    </button>
-                                                </div>
+                                                <span className="text-sm font-mono text-[#fe0404]">
+                                                    {foundBugs.size}/3
+                                                </span>
                                             </div>
 
-                                            {/* Feedback Area */}
-                                            <AnimatePresence>
-                                                {lastFound && !allFound && (
+                                            <AnimatePresence mode="wait">
+                                                {!allFound ? (
                                                     <motion.div
-                                                        key={lastFound.id}
-                                                        initial={{ opacity: 0, y: 10 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        exit={{ opacity: 0 }}
-                                                        className="mt-3 bg-[#1e1e1e] rounded-lg p-3 border border-white/5"
+                                                        key="shop"
+                                                        initial={{ opacity: 1 }}
+                                                        exit={{ opacity: 0, scale: 0.95 }}
+                                                        className="px-6 pb-6"
                                                     >
-                                                        <div className="flex items-start gap-2">
-                                                            <AlertTriangle className="w-4 h-4 text-[#fe0404] shrink-0 mt-0.5" />
-                                                            <div>
-                                                                <p className="text-xs font-bold text-white">
-                                                                    {lastFound.label}
-                                                                </p>
-                                                                <p className="text-xs text-gray-400 mt-0.5">
-                                                                    {lastFound.explanation}
-                                                                </p>
+                                                        {/* Simulated Product Page */}
+                                                        <div className="bg-white rounded-xl overflow-hidden">
+                                                            {/* Product Image Placeholder – FALSE POSITIVE */}
+                                                            <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-32 flex items-center justify-center relative">
+                                                                <button
+                                                                    onClick={() => triggerFalsePositive(FALSE_POSITIVES[0])}
+                                                                    className="text-center text-gray-400 cursor-pointer hover:ring-2 hover:ring-[#fe0404]/50 rounded-lg p-2 transition-all"
+                                                                >
+                                                                    <ShoppingCart className="w-8 h-8 mx-auto mb-1" />
+                                                                    <span className="text-xs">Produktbild</span>
+                                                                </button>
+                                                                {/* Cart Badge with WRONG price - Bug #2 */}
+                                                                <button
+                                                                    onClick={() => markBug(BUGS[1])}
+                                                                    className={`absolute top-3 right-3 flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-all cursor-pointer ${foundBugs.has("price-mismatch")
+                                                                        ? "bg-green-100 text-green-700 ring-2 ring-green-400"
+                                                                        : "bg-gray-800 text-white hover:ring-2 hover:ring-[#fe0404]/50"
+                                                                        }`}
+                                                                    title="Warenkorb"
+                                                                >
+                                                                    <ShoppingCart className="w-3 h-3" />
+                                                                    &euro;39,99
+                                                                    {foundBugs.has("price-mismatch") && (
+                                                                        <CheckCircle className="w-3 h-3 ml-0.5" />
+                                                                    )}
+                                                                </button>
                                                             </div>
+
+                                                            {/* Product Info */}
+                                                            <div className="p-4 space-y-3">
+                                                                <div className="flex items-center justify-between">
+                                                                    {/* Product Title – FALSE POSITIVE */}
+                                                                    <button
+                                                                        onClick={() => triggerFalsePositive(FALSE_POSITIVES[2])}
+                                                                        className="font-bold text-[#101010] text-sm cursor-pointer hover:ring-2 hover:ring-[#fe0404]/50 rounded px-1 -mx-1 transition-all text-left"
+                                                                    >
+                                                                        Premium Kopfhörer Pro X
+                                                                    </button>
+                                                                    {/* Star Rating – FALSE POSITIVE */}
+                                                                    <button
+                                                                        onClick={() => triggerFalsePositive(FALSE_POSITIVES[1])}
+                                                                        className="flex items-center gap-0.5 cursor-pointer hover:ring-2 hover:ring-[#fe0404]/50 rounded px-1 py-0.5 transition-all"
+                                                                    >
+                                                                        {[...Array(5)].map((_, i) => (
+                                                                            <Star
+                                                                                key={i}
+                                                                                className={`w-3 h-3 ${i < 4
+                                                                                    ? "text-yellow-400 fill-yellow-400"
+                                                                                    : "text-gray-300"
+                                                                                    }`}
+                                                                            />
+                                                                        ))}
+                                                                    </button>
+                                                                </div>
+
+                                                                {/* Price - shows 29,99 but cart shows 39,99 */}
+                                                                <p className="text-[#fe0404] font-bold text-lg">
+                                                                    &euro;29,99
+                                                                </p>
+
+                                                                {/* Email field - Bug #3: missing asterisk */}
+                                                                <div>
+                                                                    <button
+                                                                        onClick={() => markBug(BUGS[2])}
+                                                                        className={`block w-full text-left cursor-pointer transition-all rounded-lg p-0.5 ${foundBugs.has("missing-asterisk")
+                                                                            ? "ring-2 ring-green-400"
+                                                                            : "hover:ring-2 hover:ring-[#fe0404]/50"
+                                                                            }`}
+                                                                    >
+                                                                        <span className="text-xs text-gray-500 mb-0.5 block pl-1">
+                                                                            E-Mail für Bestellbestätigung
+                                                                            {/* Intentionally NO asterisk - that is the bug */}
+                                                                            {foundBugs.has("missing-asterisk") && (
+                                                                                <span className="text-green-600 ml-1">
+                                                                                    ✓ Pflichtfeld-Marker fehlt!
+                                                                                </span>
+                                                                            )}
+                                                                        </span>
+                                                                        <div className="w-full h-9 bg-gray-50 rounded-md border border-gray-200 px-2.5 flex items-center text-xs text-gray-400">
+                                                                            ihre@email.de
+                                                                        </div>
+                                                                    </button>
+                                                                </div>
+
+                                                                {/* Buy Button - Bug #1: greyed out */}
+                                                                <button
+                                                                    onClick={() => markBug(BUGS[0])}
+                                                                    className={`w-full py-2.5 rounded-lg font-bold text-sm transition-all cursor-pointer ${foundBugs.has("button-color")
+                                                                        ? "bg-green-500 text-white ring-2 ring-green-400"
+                                                                        : "bg-gray-400 text-gray-200 hover:ring-2 hover:ring-[#fe0404]/50"
+                                                                        }`}
+                                                                >
+                                                                    {foundBugs.has("button-color")
+                                                                        ? "✓ Bug erkannt!"
+                                                                        : "Jetzt kaufen"}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Feedback Area – Bug found */}
+                                                        <AnimatePresence>
+                                                            {lastFound && !allFound && (
+                                                                <motion.div
+                                                                    key={lastFound.id}
+                                                                    initial={{ opacity: 0, y: 10 }}
+                                                                    animate={{ opacity: 1, y: 0 }}
+                                                                    exit={{ opacity: 0 }}
+                                                                    className="mt-3 bg-[#1e1e1e] rounded-lg p-3 border border-green-500/20"
+                                                                >
+                                                                    <div className="flex items-start gap-2">
+                                                                        <AlertTriangle className="w-4 h-4 text-[#fe0404] shrink-0 mt-0.5" />
+                                                                        <div>
+                                                                            <p className="text-xs font-bold text-white">
+                                                                                🐛 Fehler: {lastFound.label}
+                                                                            </p>
+                                                                            <p className="text-xs text-gray-400 mt-0.5">
+                                                                                {lastFound.explanation}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+
+                                                        {/* Feedback Area – False positive (no bug) */}
+                                                        <AnimatePresence>
+                                                            {falsePositiveMsg && !allFound && (
+                                                                <motion.div
+                                                                    key={`fp-${falsePositiveMsg.id}`}
+                                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                    exit={{ opacity: 0, scale: 0.95 }}
+                                                                    className="mt-3 bg-[#1e1e1e] rounded-lg p-3 border border-blue-500/20"
+                                                                >
+                                                                    <div className="flex items-start gap-2">
+                                                                        <XCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                                                                        <div>
+                                                                            <p className="text-xs font-bold text-blue-300">
+                                                                                ✓ Kein Fehler: {falsePositiveMsg.label}
+                                                                            </p>
+                                                                            <p className="text-xs text-gray-400 mt-0.5">
+                                                                                {falsePositiveMsg.reason}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+
+                                                        {foundBugs.size === 0 && (
+                                                            <p className="text-xs text-gray-500 text-center mt-3">
+                                                                💡 Klicke auf die Elemente, die dir verdächtig
+                                                                vorkommen.
+                                                            </p>
+                                                        )}
+                                                    </motion.div>
+                                                ) : (
+                                                    /* All 3 Bugs Found - Success Screen */
+                                                    <motion.div
+                                                        key="success"
+                                                        initial={{ opacity: 0, scale: 0.9 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        className="px-6 pb-8 text-center"
+                                                    >
+                                                        <div className="py-6">
+                                                            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                                <CheckCircle className="w-8 h-8 text-green-400" />
+                                                            </div>
+                                                            <h4 className="text-white font-bold text-lg mb-2">
+                                                                Alle 3 Fehler gefunden! 🏆
+                                                            </h4>
+                                                            <p className="text-gray-400 text-sm mb-2 max-w-xs mx-auto">
+                                                                Du hast gerade einen vollständigen{" "}
+                                                                <strong className="text-white">UI-Test</strong>{" "}
+                                                                durchgeführt – genau das, was ein Softwaretester
+                                                                täglich macht.
+                                                            </p>
+                                                            <div className="text-xs text-gray-500 space-y-1 mb-6">
+                                                                <p>✓ Button-Farbe (Usability)</p>
+                                                                <p>✓ Preisabweichung (Dateninkonsistenz)</p>
+                                                                <p>✓ Pflichtfeld-Marker (Anforderungsfehler)</p>
+                                                            </div>
+                                                            <p className="text-xs text-gray-500 mb-5">
+                                                                In der WAMOCON Academy lernst du, solche Fehler{" "}
+                                                                <em>systematisch</em> zu finden.
+                                                            </p>
+                                                            <a
+                                                                href="#contact"
+                                                                className="inline-flex items-center gap-2 bg-[#fe0404] text-white px-6 py-3 rounded-lg text-sm font-bold hover:bg-[#d00303] transition-all glow-red"
+                                                            >
+                                                                Jetzt Tester werden
+                                                                <ArrowRight className="w-4 h-4" />
+                                                            </a>
                                                         </div>
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>
-
-                                            {foundBugs.size === 0 && (
-                                                <p className="text-xs text-gray-500 text-center mt-3">
-                                                    💡 Klicke auf die Elemente, die dir verdächtig
-                                                    vorkommen.
-                                                </p>
-                                            )}
-                                        </motion.div>
-                                    ) : (
-                                        /* All 3 Bugs Found - Success Screen */
-                                        <motion.div
-                                            key="success"
-                                            initial={{ opacity: 0, scale: 0.9 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="px-6 pb-8 text-center"
-                                        >
-                                            <div className="py-6">
-                                                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                                    <CheckCircle className="w-8 h-8 text-green-400" />
-                                                </div>
-                                                <h4 className="text-white font-bold text-lg mb-2">
-                                                    Alle 3 Fehler gefunden! 🏆
-                                                </h4>
-                                                <p className="text-gray-400 text-sm mb-2 max-w-xs mx-auto">
-                                                    Du hast gerade einen vollständigen{" "}
-                                                    <strong className="text-white">UI-Test</strong>{" "}
-                                                    durchgeführt – genau das, was ein Softwaretester
-                                                    täglich macht.
-                                                </p>
-                                                <div className="text-xs text-gray-500 space-y-1 mb-6">
-                                                    <p>✓ Button-Farbe (Usability)</p>
-                                                    <p>✓ Preisabweichung (Dateninkonsistenz)</p>
-                                                    <p>✓ Pflichtfeld-Marker (Anforderungsfehler)</p>
-                                                </div>
-                                                <p className="text-xs text-gray-500 mb-5">
-                                                    In der WAMOCON Academy lernst du, solche Fehler{" "}
-                                                    <em>systematisch</em> zu finden.
-                                                </p>
-                                                <a
-                                                    href="#contact"
-                                                    className="inline-flex items-center gap-2 bg-[#fe0404] text-white px-6 py-3 rounded-lg text-sm font-bold hover:bg-[#d00303] transition-all glow-red"
-                                                >
-                                                    Jetzt Tester werden
-                                                    <ArrowRight className="w-4 h-4" />
-                                                </a>
-                                            </div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
                             </div>
+                        </div>
 
-                            {/* Floating Labels */}
+                        {/* Trust Badges – below the demo app */}
+                        <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
                             <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 1 }}
-                                className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 border border-gray-100"
+                                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                viewport={{ once: true, margin: "-30px" }}
+                                transition={{ delay: 0.1, duration: 0.5, type: "spring", stiffness: 120 }}
+                                className="flex items-center gap-2.5 bg-white rounded-xl shadow-md px-3.5 py-2.5 border border-gray-100"
                             >
-                                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                    <CheckCircle className="w-5 h-5 text-green-600" />
+                                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                                    <CheckCircle className="w-4 h-4 text-green-600" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500">Erfolgsquote</p>
-                                    <p className="font-bold text-[#101010]">87%</p>
+                                    <p className="text-[10px] text-gray-400 leading-tight">Erfolgsquote</p>
+                                    <p className="text-sm font-bold text-[#101010]">87%</p>
                                 </div>
                             </motion.div>
 
                             <motion.div
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 1.2 }}
-                                className="absolute -top-4 -right-4 bg-[#101010] rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 border border-white/10"
+                                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                viewport={{ once: true, margin: "-30px" }}
+                                transition={{ delay: 0.25, duration: 0.5, type: "spring", stiffness: 120 }}
+                                className="flex items-center gap-2.5 bg-[#101010] rounded-xl shadow-md px-3.5 py-2.5 border border-white/10"
                             >
-                                <div className="w-10 h-10 bg-[#fe0404]/20 rounded-full flex items-center justify-center">
-                                    <Shield className="w-5 h-5 text-[#fe0404]" />
+                                <div className="w-8 h-8 bg-[#fe0404]/20 rounded-full flex items-center justify-center shrink-0">
+                                    <Shield className="w-4 h-4 text-[#fe0404]" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-300 font-medium">Kosten für dich</p>
-                                    <p className="font-bold text-white">0 €</p>
+                                    <p className="text-[10px] text-gray-400 leading-tight">Kosten für dich</p>
+                                    <p className="text-sm font-bold text-white">0 €</p>
+                                </div>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                viewport={{ once: true, margin: "-30px" }}
+                                transition={{ delay: 0.4, duration: 0.5, type: "spring", stiffness: 120 }}
+                                className="flex items-center gap-2.5 bg-white rounded-xl shadow-md px-3.5 py-2.5 border border-gray-100"
+                            >
+                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                                    <Clock className="w-4 h-4 text-blue-600" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] text-gray-400 leading-tight">Dauer</p>
+                                    <p className="text-sm font-bold text-[#101010]">15 Tage</p>
                                 </div>
                             </motion.div>
                         </div>

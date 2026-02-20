@@ -1,18 +1,33 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Send, CheckCircle, Phone, Mail, MapPin, ArrowRight } from "lucide-react";
+import { Send, CheckCircle, Phone, Mail, MapPin, ArrowRight, Calendar } from "lucide-react";
+import { upcomingDates } from "@/data/courseDates";
 
-export default function ContactForm() {
+function ContactFormContent() {
+    const searchParams = useSearchParams();
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Form States
+    const [selectedDateId, setSelectedDateId] = useState("");
+
+    // Initialize date from URL
+    useEffect(() => {
+        const dateParam = searchParams.get("date");
+        if (dateParam) {
+            setSelectedDateId(dateParam);
+        }
+    }, [searchParams]);
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // Simulate submission – replace with Supabase integration
+        // Simulate submission – replace with Supabase integration later
+        // Payload would include: selectedDateId, phone, email, etc.
         await new Promise((resolve) => setTimeout(resolve, 1500));
 
         setIsSubmitted(true);
@@ -92,10 +107,10 @@ export default function ContactForm() {
                             {!isSubmitted ? (
                                 <>
                                     <h3 className="text-xl font-bold text-[#101010] mb-2">
-                                        Eignungs-Check anfordern
+                                        Eignungs-Check & Termin-Anfrage
                                     </h3>
                                     <p className="text-sm text-gray-500 mb-8">
-                                        Kostenlos & unverbindlich – wir melden uns innerhalb von 24 Stunden.
+                                        Kostenlos & unverbindlich – wir melden uns per WhatsApp oder Telefon.
                                     </p>
 
                                     <form onSubmit={handleSubmit} className="space-y-5">
@@ -138,28 +153,52 @@ export default function ContactForm() {
 
                                         <div>
                                             <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
-                                                Telefonnummer
+                                                Deine WhatsApp Nummer (für Rückruf) *
                                             </label>
                                             <input
                                                 type="tel"
-                                                placeholder="+49 (0) 123 456 789"
+                                                required
+                                                placeholder="+49 (0) 176 123 456 78"
                                                 className="w-full h-12 rounded-lg border border-gray-200 bg-gray-50 px-4 text-sm focus:border-[#fe0404] focus:ring-2 focus:ring-[#fe0404]/20 outline-none transition-all"
                                             />
                                         </div>
 
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
-                                                Deine Situation
-                                            </label>
-                                            <select
-                                                className="w-full h-12 rounded-lg border border-gray-200 bg-gray-50 px-4 text-sm focus:border-[#fe0404] focus:ring-2 focus:ring-[#fe0404]/20 outline-none transition-all text-gray-600"
-                                            >
-                                                <option value="">Bitte wählen...</option>
-                                                <option value="arbeitsamt">Bildungsgutschein vorhanden</option>
-                                                <option value="interessiert">Bildungsgutschein beantragt</option>
-                                                <option value="info">Erst mal informieren</option>
-                                                <option value="other">Sonstiges</option>
-                                            </select>
+                                        <div className="grid sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
+                                                    Deine Situation
+                                                </label>
+                                                <select
+                                                    className="w-full h-12 rounded-lg border border-gray-200 bg-gray-50 px-4 text-sm focus:border-[#fe0404] focus:ring-2 focus:ring-[#fe0404]/20 outline-none transition-all text-gray-600"
+                                                >
+                                                    <option value="">Bitte wählen...</option>
+                                                    <option value="arbeitsamt">Bildungsgutschein vorhanden</option>
+                                                    <option value="interessiert">Bildungsgutschein beantragt</option>
+                                                    <option value="info">Erst mal informieren</option>
+                                                    <option value="other">Sonstiges</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
+                                                    Wunsch-Termin
+                                                </label>
+                                                <div className="relative">
+                                                    <select
+                                                        value={selectedDateId}
+                                                        onChange={(e) => setSelectedDateId(e.target.value)}
+                                                        className={`w-full h-12 rounded-lg border bg-gray-50 pl-4 pr-10 text-sm focus:border-[#fe0404] focus:ring-2 focus:ring-[#fe0404]/20 outline-none transition-all appearance-none truncate ${selectedDateId ? "border-[#fe0404] bg-red-50/20 text-[#101010] font-medium" : "border-gray-200 text-gray-600"
+                                                            }`}
+                                                    >
+                                                        <option value="">Nächstmöglicher Termin</option>
+                                                        {upcomingDates.map(date => (
+                                                            <option key={date.id} value={date.id}>
+                                                                {date.startDate} ({date.status === 'fast-voll' ? 'Wenige Plätze' : date.status === 'ausgebucht' ? 'Ausgebucht (Warteliste)' : 'Verfügbar'})
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <Calendar className={`w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none ${selectedDateId ? "text-[#fe0404]" : "text-gray-400"}`} />
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div>
@@ -168,7 +207,7 @@ export default function ContactForm() {
                                             </label>
                                             <textarea
                                                 rows={3}
-                                                placeholder="Ich bin an einer Beratung interessiert..."
+                                                placeholder="Ich habe noch Fragen zum Ablauf..."
                                                 className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-[#fe0404] focus:ring-2 focus:ring-[#fe0404]/20 outline-none transition-all resize-none"
                                             />
                                         </div>
@@ -182,7 +221,7 @@ export default function ContactForm() {
                                             />
                                             <label htmlFor="privacy" className="text-xs text-gray-500 leading-relaxed">
                                                 Ich stimme der Verarbeitung meiner Daten zum Zweck der Kontaktaufnahme zu.
-                                                Die <a href="#" className="text-[#fe0404] hover:underline">Datenschutzerklärung</a> habe ich gelesen.*
+                                                Die <a href="/datenschutz" className="text-[#fe0404] hover:underline">Datenschutzerklärung</a> habe ich gelesen.*
                                             </label>
                                         </div>
 
@@ -199,7 +238,7 @@ export default function ContactForm() {
                                             ) : (
                                                 <>
                                                     <Send className="w-4 h-4" />
-                                                    Beratung anfordern
+                                                    Kostenlose Beratung anfordern
                                                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                                 </>
                                             )}
@@ -222,7 +261,7 @@ export default function ContactForm() {
                                         Deine Anfrage wurde erfolgreich übermittelt.
                                     </p>
                                     <p className="text-sm text-gray-500">
-                                        Wir melden uns innerhalb von 24 Stunden bei dir.
+                                        Wir melden uns schnellstmöglich per WhatsApp bei dir.
                                     </p>
                                 </motion.div>
                             )}
@@ -231,5 +270,13 @@ export default function ContactForm() {
                 </div>
             </div>
         </section>
+    );
+}
+
+export default function ContactForm() {
+    return (
+        <Suspense fallback={<div className="section-light section-padding text-center">Laden...</div>}>
+            <ContactFormContent />
+        </Suspense>
     );
 }

@@ -5,13 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Shield, Award, ChevronRight } from "lucide-react";
 
 const navLinks = [
-    { label: "Startseite", href: "#hero" },
     { label: "Das Konzept", href: "#problem-solution" },
-    { label: "Praxis-Tool (DiTeLe)", href: "#tool-showcase" },
-    { label: "Lernplan", href: "#roadmap" },
-    { label: "Trainer & Team", href: "#trainers" },
+    { label: "Praxis-Tool", href: "#tool-showcase" },
+    { label: "Dein Lernplan", href: "#roadmap" },
     { label: "Erfolgsgeschichten", href: "#testimonials" },
-    { label: "Kontakt", href: "#contact" },
+    { label: "Förderung", href: "#funding" },
+    { label: "FAQ", href: "#faq" },
 ];
 
 export default function Header() {

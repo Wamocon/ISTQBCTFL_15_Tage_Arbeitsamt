@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Shield, Award, ArrowUp } from "lucide-react";
 
 export default function Footer() {
@@ -40,14 +41,15 @@ export default function Footer() {
 
                     {/* Links */}
                     <div>
-                        <h4 className="font-bold text-sm mb-4">Navigation</h4>
+                        <h4 className="font-bold text-sm mb-4">Entdecken</h4>
                         <ul className="space-y-2.5">
                             {[
                                 { label: "Das Konzept", href: "#problem-solution" },
                                 { label: "Praxis-Tool (DiTeLe)", href: "#tool-showcase" },
-                                { label: "Lernplan", href: "#roadmap" },
-                                { label: "Trainer & Team", href: "#trainers" },
+                                { label: "Dein Lernplan", href: "#roadmap" },
                                 { label: "Erfolgsgeschichten", href: "#testimonials" },
+                                { label: "Förderung & Kosten", href: "#funding" },
+                                { label: "Zertifizierungen", href: "#certificates" },
                                 { label: "FAQ", href: "#faq" },
                             ].map((link) => (
                                 <li key={link.href}>
@@ -67,18 +69,17 @@ export default function Footer() {
                         <h4 className="font-bold text-sm mb-4">Rechtliches</h4>
                         <ul className="space-y-2.5">
                             {[
-                                "Impressum",
-                                "Datenschutzerklärung",
-                                "AGB",
-                                "Cookie-Einstellungen",
+                                { label: "Impressum", href: "/impressum" },
+                                { label: "Datenschutzerklärung", href: "/datenschutz" },
+                                { label: "AGB", href: "/agb" },
                             ].map((item) => (
-                                <li key={item}>
-                                    <a
-                                        href="#"
+                                <li key={item.href}>
+                                    <Link
+                                        href={item.href}
                                         className="text-sm text-gray-400 hover:text-white transition-colors animated-underline"
                                     >
-                                        {item}
-                                    </a>
+                                        {item.label}
+                                    </Link>
                                 </li>
                             ))}
                         </ul>

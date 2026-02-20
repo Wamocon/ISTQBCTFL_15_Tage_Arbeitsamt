@@ -5,7 +5,7 @@ import { Shield, Euro, BookOpen, Tablet, Award, ArrowRight, CheckCircle } from "
 
 const inclusions = [
     { icon: BookOpen, text: "Vollständiges Kursprogramm (15 Tage)" },
-    { icon: Tablet, text: "Tablet & Lehrmaterial inklusive" },
+
     { icon: Award, text: "ISTQB® Prüfungsgebühr" },
     { icon: Shield, text: "Zugang zum DiTeLe Praxis-Simulator" },
 ];
@@ -52,14 +52,7 @@ export default function Funding() {
                             ))}
                         </div>
 
-                        <div className="flex items-center gap-3 bg-white/5 rounded-xl p-4 border border-white/10 mb-8">
-                            <Euro className="w-8 h-8 text-green-400 shrink-0" />
-                            <div>
-                                <p className="text-xs text-gray-400">Möglicher Weiterbildungsbonus</p>
-                                <p className="text-white font-bold text-lg">+ 150 € pro Monat</p>
-                                <p className="text-xs text-gray-500">zusätzlich zum Arbeitslosengeld*</p>
-                            </div>
-                        </div>
+
 
                         <a
                             href="#contact"
@@ -100,7 +93,7 @@ export default function Funding() {
                                         "DiTeLe Praxis-Simulator",
                                         "300+ Prüfungsfragen",
                                         "ISTQB® Prüfungsgebühr",
-                                        "Tablet & Lehrmaterial",
+
                                         "Persönliche Betreuung",
                                         "Karriere-Coaching nach Abschluss",
                                     ].map((item) => (
@@ -113,8 +106,7 @@ export default function Funding() {
 
                                 <div className="mt-8 pt-6 border-t border-white/10">
                                     <p className="text-xs text-gray-500">
-                                        * Voraussetzung: Bildungsgutschein der Agentur für Arbeit oder des Jobcenters.
-                                        Weiterbildungsbonus gemäß § 131a SGB III. Angaben ohne Gewähr.
+                                        * Voraussetzung: Bildungsgutschein der Agentur für Arbeit oder des Jobcenters. Angaben ohne Gewähr.
                                     </p>
                                 </div>
                             </div>
